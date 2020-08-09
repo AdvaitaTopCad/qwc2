@@ -1,12 +1,30 @@
-QGIS Web Client 2 Components
-============================
+# qwc2
 
-QGIS Web Client 2 (QWC2) is a modular next generation responsive web client for QGIS Server, built with ReactJS and OpenLayers.
+> QGIS Web Client 2 core
 
-This repository contains the common QWC2 application components from which you can build your own personal QWC2 application.
+[![NPM](https://img.shields.io/npm/v/qwc2.svg)](https://www.npmjs.com/package/qwc2) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-See:
-* [qwc2-demo-app](https://github.com/qgis/qwc2-demo-app) for an example application built on top of the QWC2 components.
-* [this presentation](https://blog.sourcepole.ch/assets/2019/qwc2-foss4g19.pdf) for an overview and architecture of QWC2.
+## Install
 
-Please report QWC2 issues at [qwc2-demo-app/issues](https://github.com/qgis/qwc2-demo-app/issues).
+```bash
+npm install --save qwc2
+```
+
+## Usage
+
+```tsx
+import React, { Component } from 'react'
+
+import MyComponent from 'qwc2'
+import 'qwc2/dist/index.css'
+
+class Example extends Component {
+  render() {
+    return <MyComponent />
+  }
+}
+```
+
+## License
+
+BSD-2-Clause © [TNick](https://github.com/TNick)
