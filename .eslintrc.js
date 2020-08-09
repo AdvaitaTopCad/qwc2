@@ -30,5 +30,8 @@ module.exports = {
         extensions: ['.js', '.jsx'],
       },
     ],
+    "no-shadow": "error",
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": true}],
+    "no-param-reassign": 0
   },
 };
