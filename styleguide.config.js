@@ -1,1 +1,1 @@
-module.exports = {components: 'src/**/*.tsx'};
+module.exports = { components: 'src/**/*.tsx' };
