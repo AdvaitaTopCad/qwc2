@@ -6,9 +6,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { setIdentifyEnabled } from './identify';
-import ConfigUtils from '../utils/Config';
-import CoordinatesUtils from '../utils/Coordinates';
-import MapUtils from '../utils/Map';
+import { getConfigProp } from '../utils/Config';
+import { getUnits } from '../utils/Coordinates';
+import { computeForZoom } from '../utils/Map';
 import { UrlParams } from '../utils/PermaLink';
 
 export const SET_CURRENT_TASK = 'SET_CURRENT_TASK';
@@ -68,8 +68,7 @@ export function openExternalUrl(url) {
         const state = getState();
         const { bounds } = state.map.bbox;
         const proj = state.map.projection;
-        const roundfactor =
-            CoordinatesUtils.getUnits(proj) === 'degrees' ? 100000 : 1;
+        const roundfactor = getUnits(proj) === 'degrees' ? 100000 : 1;
         const xmin = Math.round(bounds[0] * roundfactor) / roundfactor;
         const ymin = Math.round(bounds[1] * roundfactor) / roundfactor;
         const xmax = Math.round(bounds[2] * roundfactor) / roundfactor;
@@ -81,7 +80,7 @@ export function openExternalUrl(url) {
             Math.round(0.5 * (bounds[1] + bounds[3]) * roundfactor) /
             roundfactor;
         const scale = Math.round(
-            MapUtils.computeForZoom(state.map.scales, state.map.zoom)
+            computeForZoom(state.map.scales, state.map.zoom)
         );
         // In case mode is center + scale, extent is missing in UrlParams
         newUrl = newUrl.replace('$e$', [xmin, ymin, xmax, ymax].join(','));
@@ -94,10 +93,7 @@ export function openExternalUrl(url) {
 
         newUrl = newUrl.replace('$crs$', proj);
 
-        newUrl = newUrl.replace(
-            '$user$',
-            ConfigUtils.getConfigProp('username') || ''
-        );
+        newUrl = newUrl.replace('$user$', getConfigProp('username') || '');
 
         window.open(newUrl);
     };

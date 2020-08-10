@@ -11,6 +11,7 @@ import { persistState } from 'redux-devtools';
 import thunkMiddleware from 'redux-thunk';
 import logger from 'redux-logger';
 import immutable from 'redux-immutable-state-invariant';
+/// TODO: should not depend on components
 import DevTools from '../components/development/DevTools';
 
 const urlQuery = url.parse(window.location.href, true).query;
@@ -28,32 +29,34 @@ const warningFilterKey = (warning) => {
     );
 };
 
-const DebugUtils = {
-    createDebugStore(reducer, initialState, userMiddlewares, enhancer) {
-        let finalCreateStore;
-        if (process.env.NODE_ENV !== 'production' && urlQuery.debug) {
-            const middlewares = (userMiddlewares || []).concat([
-                immutable(),
-                thunkMiddleware,
-                logger,
-            ]);
-            finalCreateStore = compose(
-                applyMiddleware(...middlewares),
-                window.devToolsExtension
-                    ? window.devToolsExtension()
-                    : DevTools.instrument(),
-                persistState(
-                    window.location.href.match(/[?&]debug_session=([^&]+)\b/)
-                )
-            )(createStore);
-        } else {
-            const middlewares = (userMiddlewares || []).concat([
-                thunkMiddleware,
-            ]);
-            finalCreateStore = applyMiddleware(...middlewares)(createStore);
-        }
-        return finalCreateStore(reducer, initialState, enhancer);
-    },
+// eslint-disable-next-line import/prefer-default-export
+export const createDebugStore = (
+    reducer,
+    initialState,
+    userMiddlewares,
+    enhancer
+) => {
+    let finalCreateStore;
+    if (process.env.NODE_ENV !== 'production' && urlQuery.debug) {
+        const middlewares = (userMiddlewares || []).concat([
+            immutable(),
+            thunkMiddleware,
+            logger,
+        ]);
+        finalCreateStore = compose(
+            applyMiddleware(...middlewares),
+            window.devToolsExtension
+                ? window.devToolsExtension()
+                : DevTools.instrument(),
+            persistState(
+                window.location.href.match(/[?&]debug_session=([^&]+)\b/)
+            )
+        )(createStore);
+    } else {
+        const middlewares = (userMiddlewares || []).concat([thunkMiddleware]);
+        finalCreateStore = applyMiddleware(...middlewares)(createStore);
+    }
+    return finalCreateStore(reducer, initialState, enhancer);
 };
 
 /*eslint-disable */
@@ -65,5 +68,3 @@ console.warn = function() {
     }
 };
 /* eslint-enable */
-
-export default DebugUtils;

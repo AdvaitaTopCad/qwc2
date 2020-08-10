@@ -7,8 +7,8 @@
  */
 
 import axios from 'axios';
-import LocaleUtils from '../utils/Locale';
-import ConfigUtils from '../utils/Config';
+import { getUserLocale } from '../utils/Locale';
+import { getConfigProp } from '../utils/Config';
 
 export const CHANGE_LOCALE = 'CHANGE_LOCALE';
 export const LOCALE_LOAD_ERROR = 'LOCALE_LOAD_ERROR';
@@ -32,13 +32,12 @@ export function loadLocale(translationFolder, language) {
     return (dispatch) => {
         let locale = language;
         if (!locale) {
-            locale = LocaleUtils.getUserLocale();
+            locale = getUserLocale();
         }
         return axios
             .get(
                 `${
-                    translationFolder ||
-                    ConfigUtils.getConfigProp('translationsPath')
+                    translationFolder || getConfigProp('translationsPath')
                 }/data.${locale}`
             )
             .then((response) => {
@@ -46,6 +45,7 @@ export function loadLocale(translationFolder, language) {
                     try {
                         JSON.parse(response.data);
                     } catch (e) {
+                        // eslint-disable-next-line no-console
                         console.warn(
                             `Locale file broken  for (${language}): ${e.message}`
                         );

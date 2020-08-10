@@ -7,7 +7,7 @@
  */
 import url from 'url';
 import { addLocaleData } from 'react-intl';
-import ConfigUtils from '../Config';
+import { getConfigProp } from '../Config';
 
 let supportedLocales = {
     en: {
@@ -66,7 +66,7 @@ export const getLocale = (query) => {
         supportedLocales[
             normalizeLocaleCode(
                 query.locale ||
-                    ConfigUtils.getConfigProp('locale') ||
+                    getConfigProp('locale') ||
                     (navigator
                         ? navigator.language || navigator.browserLanguage
                         : 'en')
@@ -92,7 +92,7 @@ export const getMessageById = (messages, msgId) => {
 };
 
 export const toLocaleFixed = (number, digits) => {
-    if (ConfigUtils.getConfigProp('localeAwareNumbers')) {
+    if (getConfigProp('localeAwareNumbers')) {
         return number.toLocaleString(getUserLocale(), {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits,

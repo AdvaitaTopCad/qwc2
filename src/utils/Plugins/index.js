@@ -9,19 +9,17 @@
 import assign from 'object-assign';
 import { omit } from 'lodash';
 
-const PluginsUtils = {
-    getPluginReducers: (plugins) => {
-        return Object.keys(plugins)
-            .map((name) => plugins[name].reducers)
-            .reduce((previous, current) => assign({}, previous, current), {});
-    },
-    getPlugins: (plugins) =>
-        Object.keys(plugins)
-            .map((name) => plugins[name])
-            .reduce(
-                (previous, current) =>
-                    assign({}, previous, omit(current, 'reducers')),
-                {}
-            ),
+export const getPluginReducers = (plugins) => {
+    return Object.keys(plugins)
+        .map((name) => plugins[name].reducers)
+        .reduce((previous, current) => assign({}, previous, current), {});
 };
-module.exports = PluginsUtils;
+
+export const getPlugins = (plugins) =>
+    Object.keys(plugins)
+        .map((name) => plugins[name])
+        .reduce(
+            (previous, current) =>
+                assign({}, previous, omit(current, 'reducers')),
+            {}
+        );

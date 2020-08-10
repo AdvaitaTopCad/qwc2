@@ -7,14 +7,25 @@
  */
 
 import assign from 'object-assign';
-import isEmpty from 'lodash.isempty';
+import { isEmpty } from 'lodash';
 import { setIdentifyEnabled } from './identify';
-import ConfigUtils from '../utils/Config';
-import CoordinatesUtils from '../utils/Coordinates';
-import MapUtils from '../utils/Map';
-import LayerUtils from '../utils/Layer';
-import ServiceLayerUtils from '../utils/ServiceLayer';
-import ThemeUtils from '../utils/Theme';
+import { getConfigProp } from '../utils/Config';
+import { reprojectBbox } from '../utils/Coordinates';
+import { getGoogleMercatorScales } from '../utils/Map';
+import {
+    replaceLayerGroups,
+    mergeSubLayers,
+    getSublayerNames,
+    splitLayerUrlParam,
+    restoreOrderedLayerParams,
+    restoreLayerParams,
+} from '../utils/Layer';
+import { findLayers } from '../utils/ServiceLayer';
+import {
+    createThemeLayer,
+    createThemeBackgroundLayers,
+    getThemeById,
+} from '../utils/Theme';
 import {
     LayerRole,
     addLayer,
@@ -29,6 +40,7 @@ export const THEMES_LOADED = 'THEMES_LOADED';
 export const SET_THEME_LAYERS_LIST = 'SET_THEME_LAYERS_LIST';
 export const SET_CURRENT_THEME = 'SET_CURRENT_THEME';
 export const SWITCHING_THEME = 'SWITCHING_THEME';
+export const CLEAR_CURRENT_THEME = 'CLEAR_CURRENT_THEME';
 
 export function themesLoaded(themes) {
     return {
@@ -54,23 +66,21 @@ export function finishThemeSetup(
     externalLayerRestorer
 ) {
     // Create layer
-    const themeLayer = ThemeUtils.createThemeLayer(theme, themes);
+    const themeLayer = createThemeLayer(theme, themes);
     let layers = [themeLayer];
 
     // Restore theme layer configuration, create placeholders for missing layers
     const externalLayers = {};
     if (layerConfigs) {
-        if (
-            ConfigUtils.getConfigProp('allowReorderingLayers', theme) !== true
-        ) {
-            layers = LayerUtils.restoreLayerParams(
+        if (getConfigProp('allowReorderingLayers', theme) !== true) {
+            layers = restoreLayerParams(
                 themeLayer,
                 layerConfigs,
                 permalinkLayers,
                 externalLayers
             );
         } else {
-            layers = LayerUtils.restoreOrderedLayerParams(
+            layers = restoreOrderedLayerParams(
                 themeLayer,
                 layerConfigs,
                 permalinkLayers,
@@ -92,7 +102,7 @@ export function finishThemeSetup(
         Object.keys(externalLayers).forEach((key) => {
             const service = key.slice(0, 3);
             const serviceUrl = key.slice(4);
-            ServiceLayerUtils.findLayers(
+            findLayers(
                 service,
                 serviceUrl,
                 externalLayers[key],
@@ -139,10 +149,8 @@ export function setCurrentTheme(
         if (
             preserve &&
             finalVisibleBgLayer === null &&
-            ConfigUtils.getConfigProp(
-                'preserveBackgroundOnThemeSwitch',
-                finalTheme
-            ) === true
+            getConfigProp('preserveBackgroundOnThemeSwitch', finalTheme) ===
+                true
         ) {
             const curBgLayer = getState().layers.flat.find(
                 (layer) =>
@@ -156,10 +164,8 @@ export function setCurrentTheme(
         let insertPos = 0;
         if (
             preserve &&
-            ConfigUtils.getConfigProp(
-                'preserveNonThemeLayersOnThemeSwitch',
-                finalTheme
-            ) === true
+            getConfigProp('preserveNonThemeLayersOnThemeSwitch', finalTheme) ===
+                true
         ) {
             // Compute insertion position of new theme layers by counting how many non-theme layers remain
             insertPos = getState().layers.flat.filter(
@@ -193,13 +199,11 @@ export function setCurrentTheme(
             getState().map.projection === finalTheme.mapCrs
         ) {
             if (
-                ConfigUtils.getConfigProp(
-                    'preserveExtentOnThemeSwitch',
-                    finalTheme
-                ) === true
+                getConfigProp('preserveExtentOnThemeSwitch', finalTheme) ===
+                true
             ) {
                 // If theme bbox (b1) includes current bbox (b2), keep current extent
-                const b1 = CoordinatesUtils.reprojectBbox(
+                const b1 = reprojectBbox(
                     finalTheme.bbox.bounds,
                     finalTheme.bbox.crs,
                     getState().map.projection
@@ -218,10 +222,8 @@ export function setCurrentTheme(
                     };
                 }
             } else if (
-                ConfigUtils.getConfigProp(
-                    'preserveExtentOnThemeSwitch',
-                    finalTheme
-                ) === 'force'
+                getConfigProp('preserveExtentOnThemeSwitch', finalTheme) ===
+                'force'
             ) {
                 finalInitialView = {
                     bounds: getState().map.bbox.bounds,
@@ -236,7 +238,7 @@ export function setCurrentTheme(
             scales:
                 finalTheme.scales ||
                 themes.defaultScales ||
-                MapUtils.getGoogleMercatorScales(0, 21),
+                getGoogleMercatorScales(0, 21),
             printScales:
                 finalTheme.printScales ||
                 themes.defaultPrintScales ||
@@ -259,7 +261,7 @@ export function setCurrentTheme(
         );
 
         // Add background layers for theme
-        ThemeUtils.createThemeBackgroundLayers(
+        createThemeBackgroundLayers(
             finalTheme,
             themes,
             finalVisibleBgLayer
@@ -268,20 +270,17 @@ export function setCurrentTheme(
         });
 
         let layerConfigs = layerParams
-            ? layerParams.map((param) => LayerUtils.splitLayerUrlParam(param))
+            ? layerParams.map((param) => splitLayerUrlParam(param))
             : null;
 
         if (layerConfigs) {
-            layerConfigs = LayerUtils.replaceLayerGroups(
-                layerConfigs,
-                finalTheme
-            );
+            layerConfigs = replaceLayerGroups(layerConfigs, finalTheme);
         }
 
         // Restore missing theme layers
         let missingThemeLayers = null;
         if (layerConfigs) {
-            const layerNames = LayerUtils.getSublayerNames(finalTheme);
+            const layerNames = getSublayerNames(finalTheme);
             missingThemeLayers = layerConfigs.reduce((missing, layerConfig) => {
                 if (
                     layerConfig.type === 'theme' &&
@@ -297,7 +296,7 @@ export function setCurrentTheme(
                 Object.keys(missingThemeLayers),
                 finalTheme,
                 (newLayers, newLayerNames) => {
-                    const newTheme = LayerUtils.mergeSubLayers(finalTheme, {
+                    const newTheme = mergeSubLayers(finalTheme, {
                         sublayers: newLayers,
                     });
                     if (newLayerNames) {
@@ -349,7 +348,7 @@ export function restoreDefaultTheme() {
         const { themes } = getState().theme;
         dispatch(
             setCurrentTheme(
-                ThemeUtils.getThemeById(themes, themes.defaultTheme),
+                getThemeById(themes, themes.defaultTheme),
                 themes,
                 false
             )

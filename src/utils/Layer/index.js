@@ -10,7 +10,7 @@ import assign from 'object-assign';
 import { isEmpty, isEqual } from 'lodash';
 import uuid from 'uuid';
 import url from 'url';
-import ConfigUtils from '../Config';
+import { getConfigProp } from '../Config';
 import { LayerRole } from '../../actions/layers';
 
 export const collectWMSSublayerParams = (
@@ -143,7 +143,7 @@ export const buildWMSLayerUrlParam = (layers) => {
         }
         return param;
     });
-    if (ConfigUtils.getConfigProp('urlReverseLayerOrder')) {
+    if (getConfigProp('urlReverseLayerOrder')) {
         result.reverse();
     }
     return result.join(',');

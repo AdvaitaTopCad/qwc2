@@ -10,7 +10,7 @@ import axios from 'axios';
 import uuid from 'uuid';
 import jsts from 'jsts';
 import assign from 'object-assign';
-import ConfigUtils from '../utils/Config';
+import { getConfigProp } from '../utils/Config';
 
 export const IDENTIFY_EMPTY = 'IDENTIFY_EMPTY';
 export const IDENTIFY_RESPONSE = 'IDENTIFY_RESPONSE';
@@ -127,7 +127,7 @@ export function setIdentifyFeatureResult(pos, layername, feature) {
 
 export function setIdentifyEnabled(enabled) {
     return (dispatch, getState) => {
-        let identifyTool = ConfigUtils.getConfigProp(
+        let identifyTool = getConfigProp(
             'identifyTool',
             getState().theme.current
         );

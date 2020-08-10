@@ -10,12 +10,12 @@ import url from 'url';
 import axios from 'axios';
 import assign from 'object-assign';
 import { LayerRole } from '../../actions/layers';
-import ConfigUtils from '../Config';
+import { getConfigProp } from '../Config';
 import { explodeLayers } from '../Layer';
 
-const UrlParams = {
+export const UrlParams = {
     updateParams(dict) {
-        if (ConfigUtils.getConfigProp('omitUrlParameterUpdates') === true) {
+        if (getConfigProp('omitUrlParameterUpdates') === true) {
             return;
         }
         const urlObj = url.parse(window.location.href, true);
@@ -58,8 +58,8 @@ const UrlParams = {
     },
 };
 
-function generatePermaLink(state, callback, user = false) {
-    if (!ConfigUtils.getConfigProp('permalinkServiceUrl')) {
+export function generatePermaLink(state, callback, user = false) {
+    if (!getConfigProp('permalinkServiceUrl')) {
         callback(window.location.href);
         return;
     }
@@ -81,7 +81,7 @@ function generatePermaLink(state, callback, user = false) {
     const route = user ? 'userpermalink' : 'createpermalink';
     axios
         .post(
-            `${ConfigUtils.getConfigProp('permalinkServiceUrl').replace(
+            `${getConfigProp('permalinkServiceUrl').replace(
                 /\/$/,
                 ''
             )}/${route}?url=${encodeURIComponent(window.location.href)}`,
@@ -93,12 +93,12 @@ function generatePermaLink(state, callback, user = false) {
         .catch(() => callback(window.location.href));
 }
 
-function resolvePermaLink(initialParams, callback) {
+export function resolvePermaLink(initialParams, callback) {
     const key = UrlParams.getParam('k');
     if (key) {
         axios
             .get(
-                `${ConfigUtils.getConfigProp('permalinkServiceUrl').replace(
+                `${getConfigProp('permalinkServiceUrl').replace(
                     /\/$/,
                     ''
                 )}/resolvepermalink?key=${key}`
@@ -113,9 +113,3 @@ function resolvePermaLink(initialParams, callback) {
         callback(initialParams, {});
     }
 }
-
-module.exports = {
-    UrlParams,
-    generatePermaLink,
-    resolvePermaLink,
-};

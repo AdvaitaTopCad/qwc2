@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import ConfigUtils from '../utils/Config';
+import { getConfigProp } from '../utils/Config';
 
 export const SET_LAYER_LOADING = 'SET_LAYER_LOADING';
 export const ADD_LAYER = 'ADD_LAYER';
@@ -65,7 +65,7 @@ export function reorderLayer(layer, sublayerpath, direction) {
             layer,
             sublayerpath,
             direction,
-            preventSplittingGroups: ConfigUtils.getConfigProp(
+            preventSplittingGroups: getConfigProp(
                 'preventSplittingGroupsWhenReordering',
                 getState().theme.current
             ),

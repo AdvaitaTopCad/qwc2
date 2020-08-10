@@ -11,7 +11,7 @@ import { isEmpty } from 'lodash';
 import uuid from 'uuid';
 import { remove as removeDiacritics } from 'diacritics';
 
-import ConfigUtils from '../Config';
+import { getConfigProp } from '../Config';
 import { LayerRole } from '../../actions/layers';
 
 export const getThemeById = (themes, id) => {
@@ -137,7 +137,7 @@ export const createThemeLayer = (
         }, {}),
     };
     // Drawing order only makes sense if layer reordering is disabled
-    if (ConfigUtils.getConfigProp('allowReorderingLayers', theme) !== true) {
+    if (getConfigProp('allowReorderingLayers', theme) !== true) {
         layer.drawingOrder = theme.drawingOrder;
     }
     return layer;
@@ -182,7 +182,7 @@ export const searchThemes = (themes, searchtext, resultType) => {
                       id: theme.id,
                       text: theme.title,
                       theme,
-                      thumbnail: `${ConfigUtils.getConfigProp('assetsPath')}/${
+                      thumbnail: `${getConfigProp('assetsPath')}/${
                           theme.thumbnail
                       }`,
                   })),

@@ -10,12 +10,12 @@ import assign from 'object-assign';
 import proj4js from 'proj4';
 import { isEmpty } from 'lodash';
 import { getAxisOrder, normalizeSRS } from '../Coordinates';
-import MapUtils from '../Map';
-import VectorLayerUtils from '../VectorLayer';
+import { computeForZoom } from '../Map';
+import { wktToGeoJSON, reprojectGeometry } from '../VectorLayer';
 
 export const buildRequest = (layer, queryLayers, center, map, options) => {
     const size = [101, 101];
-    const resolution = MapUtils.computeForZoom(map.resolutions, map.zoom);
+    const resolution = computeForZoom(map.resolutions, map.zoom);
     const dx = 0.5 * resolution * size[0];
     const dy = 0.5 * resolution * size[1];
     const version = layer.version || '1.3.0';
@@ -163,7 +163,7 @@ export const parseXmlFeature = (
         const attribute = attributes[i];
         if (attribute.attributes.name.value === 'geometry') {
             const wkt = attribute.attributes.value.value;
-            const localFeature = VectorLayerUtils.wktToGeoJSON(
+            const localFeature = wktToGeoJSON(
                 wkt,
                 geometrycrs,
                 featureResult.crs
@@ -256,11 +256,7 @@ export const parseGeoJSONResponse = (response, geometrycrs) => {
         }
         let { geometry } = feature;
         if (geometry) {
-            geometry = VectorLayerUtils.reprojectGeometry(
-                geometry,
-                'EPSG:4326',
-                geometrycrs
-            ); // GeoJSON always wgs84
+            geometry = reprojectGeometry(geometry, 'EPSG:4326', geometrycrs); // GeoJSON always wgs84
         }
         result[layer].push(
             assign({}, feature, {

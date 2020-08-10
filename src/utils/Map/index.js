@@ -9,23 +9,25 @@
 import { getConfigProp } from '../Config';
 import { getUnits } from '../Coordinates';
 
-const DEFAULT_SCREEN_DPI = 96;
-const METERS_PER_UNIT = {
+export const DEFAULT_SCREEN_DPI = 96;
+export const METERS_PER_UNIT = {
     m: 1,
     degrees: 111194.87428468118,
     ft: 0.3048,
     'us-ft': 1200 / 3937,
 };
-const GET_PIXEL_FROM_COORDINATES_HOOK = 'GET_PIXEL_FROM_COORDINATES_HOOK';
-const GET_COORDINATES_FROM_PIXEL_HOOK = 'GET_COORDINATES_FROM_PIXEL_HOOK';
+export const GET_PIXEL_FROM_COORDINATES_HOOK =
+    'GET_PIXEL_FROM_COORDINATES_HOOK';
+export const GET_COORDINATES_FROM_PIXEL_HOOK =
+    'GET_COORDINATES_FROM_PIXEL_HOOK';
 
 const hooks = {};
 
-function registerHook(name, hook) {
+export function registerHook(name, hook) {
     hooks[name] = hook;
 }
 
-function getHook(name) {
+export function getHook(name) {
     return hooks[name];
 }
 
@@ -33,7 +35,7 @@ function getHook(name) {
  * @param dpi {number} dot per inch resolution
  * @return {number} dot per meter resolution
  */
-function dpi2dpm(dpi) {
+export function dpi2dpm(dpi) {
     return dpi * (100 / 2.54);
 }
 
@@ -42,7 +44,7 @@ function dpi2dpm(dpi) {
  * @param projection {string} map projection.
  * @return {number} dots per map unit.
  */
-function dpi2dpu(dpi, projection) {
+export function dpi2dpu(dpi, projection) {
     const units = getUnits(projection || 'EPSG:3857');
     return METERS_PER_UNIT[units] * dpi2dpm(dpi || DEFAULT_SCREEN_DPI);
 }
@@ -53,7 +55,11 @@ function dpi2dpu(dpi, projection) {
  * @param maxZoom {number} max zoom level.
  * @return {array} a list of scale for each zoom level in the given interval.
  */
-function getGoogleMercatorScales(minZoom, maxZoom, dpi = DEFAULT_SCREEN_DPI) {
+export function getGoogleMercatorScales(
+    minZoom,
+    maxZoom,
+    dpi = DEFAULT_SCREEN_DPI
+) {
     // Google mercator params
     const RADIUS = 6378137;
     const TILE_WIDTH = 256;
@@ -75,7 +81,7 @@ function getGoogleMercatorScales(minZoom, maxZoom, dpi = DEFAULT_SCREEN_DPI) {
  * @param dpi {number} screen resolution in dots per inch.
  * @return {array} a list of resolutions corresponding to the given scales, projection and dpi.
  */
-function getResolutionsForScales(scales, projection, dpi = null) {
+export function getResolutionsForScales(scales, projection, dpi = null) {
     const dpu = dpi2dpu(dpi, projection);
     const resolutions = scales.map((scale) => {
         return scale / dpu;
@@ -94,7 +100,13 @@ function getResolutionsForScales(scales, projection, dpi = null) {
  * @param dpi {number} screen resolution in dot per inch.
  * @return {Number} the zoom level fitting th extent
  */
-function getZoomForExtent(extent, resolutions, mapSize, minZoom, maxZoom) {
+export function getZoomForExtent(
+    extent,
+    resolutions,
+    mapSize,
+    minZoom,
+    maxZoom
+) {
     const wExtent = extent[2] - extent[0];
     const hExtent = extent[3] - extent[1];
 
@@ -125,7 +137,7 @@ function getZoomForExtent(extent, resolutions, mapSize, minZoom, maxZoom) {
  * @param resolutions {Array} The list of map resolutions
  * @param mapSize {Object} The current size of the map
  */
-function getExtentForCenterAndZoom(center, zoom, resolutions, mapSize) {
+export function getExtentForCenterAndZoom(center, zoom, resolutions, mapSize) {
     if (getConfigProp('allowFractionalZoom') !== true) {
         zoom = Math.round(zoom);
     }
@@ -147,7 +159,7 @@ function getExtentForCenterAndZoom(center, zoom, resolutions, mapSize) {
  * @param width {number} Width in meters.
  * @param height {number} Height in meters.
  */
-function transformExtent(projection, center, width, height) {
+export function transformExtent(projection, center, width, height) {
     const units = getUnits(projection);
     if (units === 'ft') {
         return {
@@ -185,7 +197,7 @@ function transformExtent(projection, center, width, height) {
  * @param zoomLevel (number) Zoom level (integer or fractional).
  * @return Scale of resolution matching zoomLevel
  */
-function computeForZoom(list, zoomLevel) {
+export function computeForZoom(list, zoomLevel) {
     if (getConfigProp('allowFractionalZoom') !== true) {
         return list[Math.min(list.length - 1, Math.round(zoomLevel))];
     }
@@ -206,7 +218,7 @@ function computeForZoom(list, zoomLevel) {
  * @param value (number) Scale or resolution.
  * @return Zoom level matching the specified scale or resolution.
  */
-function computeZoom(list, value) {
+export function computeZoom(list, value) {
     if (getConfigProp('allowFractionalZoom') === true) {
         let index = 0;
         for (let i = 1; i < list.length - 1; i += 1) {
@@ -227,19 +239,3 @@ function computeZoom(list, value) {
     }
     return closestIdx;
 }
-
-module.exports = {
-    GET_PIXEL_FROM_COORDINATES_HOOK,
-    GET_COORDINATES_FROM_PIXEL_HOOK,
-    DEFAULT_SCREEN_DPI,
-    registerHook,
-    getHook,
-    dpi2dpm,
-    getGoogleMercatorScales,
-    getResolutionsForScales,
-    getZoomForExtent,
-    getExtentForCenterAndZoom,
-    transformExtent,
-    computeForZoom,
-    computeZoom,
-};

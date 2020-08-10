@@ -21,9 +21,3 @@ export function onLocateError(error) {
         error,
     };
 }
-module.exports = {
-    CHANGE_LOCATE_STATE,
-    LOCATE_ERROR,
-    changeLocateState,
-    onLocateError,
-};
